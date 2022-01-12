@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="main.js"></script>
+  </head>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 2rem;
+      height: 100vh;
+    }
+
+    button,
+    input[type="submit"] {
+      --base-color: rgb(65, 65, 163);
+      --accent-color: rgba(218, 218, 255, 0.29);
+      --color: white;
+      --pseudo-left: 50%;
+      color: var(--color);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background-color: var(--base-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .light {
+      --base-color: rgb(223, 223, 255);
+      --accent-color: rgba(94, 94, 250, 0.29);
+      --color: rgb(0 0 152);
+    }
+
+    button::before,
+    button::after,
+    input[type="submit"]::before,
+    input[type="submit"]::after {
+      left: var(--pseudo-left);
+      position: absolute;
+      top: 50%;
+      background-color: var(--accent-color);
+      width: 10%;
+      height: 150%;
+      content: "";
+      border-radius: 60%;
+      transform: translate(-50%, -50%);
+      transition: width 200ms ease-out, height 100ms, opacity ease-in 50ms;
+      opacity: 0;
+    }
+
+    button:active,
+    input[type="submit"]:active {
+      transform: scale(0.95);
+    }
+
+    button:hover::before,
+    button:focus::before,
+    button:active::after,
+    input[type="submit"]:hover::before,
+    input[type="submit"]:focus::before,
+    input[type="submit"]:active::after {
+      opacity: 0.5;
+      width: 200%;
+      height: 200%;
+    }
+  </style>
+  <body>
+    <button>Click me!</button>
+    <button class="light">Click me!</button>
+    <button>Click me!</button>
+    <form>
+      <button type="submit">Submit!</button>
+    </form>
+  </body>
+  <script>
+    function getRelativeCursorPosition(event) {
+      const element = event.target;
+      const { clientX, clientY } = event;
+      const { left, right } = element.getBoundingClientRect();
+      const width = right - left;
+
+      return ((clientX - left) * 100) / width;
+    }
+
+    function setPseudoPosition(element, left) {
+      element.style.setProperty("--pseudo-left", `${left}%`);
+    }
+
+    const buttons = document.getElementsByTagName("button");
+    for (let i = 0; i < buttons.length; i++) {
+      const element = buttons[i];
+      element.addEventListener("mousemove", (event) => {
+        const left = getRelativeCursorPosition(event);
+        setPseudoPosition(element, left);
+      });
+      element.addEventListener("mouseleave", (event) => {
+        const left = getRelativeCursorPosition(event);
+        setPseudoPosition(element, 50);
+      });
+    }
+  </script>
+</html>
