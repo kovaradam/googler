@@ -32,12 +32,18 @@
       background-color: var(--base-color);
       position: relative;
       overflow: hidden;
+      transition: transform 100ms;
     }
 
     .light {
       --base-color: rgb(223, 223, 255);
       --accent-color: rgba(94, 94, 250, 0.29);
       --color: rgb(0 0 152);
+    }
+
+    button:active,
+    input[type="submit"]:active {
+      transform: scale(0.95);
     }
 
     button::before,
@@ -57,11 +63,6 @@
       opacity: 0;
     }
 
-    button:active,
-    input[type="submit"]:active {
-      transform: scale(0.95);
-    }
-
     button:hover::before,
     button:focus::before,
     button:active::after,
@@ -69,7 +70,8 @@
     input[type="submit"]:focus::before,
     input[type="submit"]:active::after {
       opacity: 0.5;
-      width: 200%;
+      --width-offset: max(var(--pseudo-left), 100% - var(--pseudo-left));
+      width: calc(110% + var(--width-offset));
       height: 200%;
     }
   </style>
