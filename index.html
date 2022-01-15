@@ -5,10 +5,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-    <script src="main.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="buttons.css" />
+    <script src="src/index.js" defer></script>
+    <script src="env.js"></script>
   </head>
   <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     body {
       display: flex;
       justify-content: center;
@@ -16,98 +28,182 @@
       flex-direction: column;
       gap: 2rem;
       height: 100vh;
+      width: 40vw;
     }
 
     button,
-    input[type="submit"] {
-      --base-color: rgb(65, 65, 163);
-      --accent-color: rgba(218, 218, 255, 0.29);
-      --color: white;
-      --pseudo-left: 50%;
-      color: var(--color);
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      background-color: var(--base-color);
+    input[type='submit'],
+    input {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
       position: relative;
       overflow: hidden;
-      transition: transform 100ms;
+      outline-color: #869aff;
+      outline-width: 3px;
     }
 
-    .light {
-      --base-color: rgb(223, 223, 255);
-      --accent-color: rgba(94, 94, 250, 0.29);
-      --color: rgb(0 0 152);
+    *:disabled {
+      pointer-events: none;
     }
 
-    button:active,
-    input[type="submit"]:active {
-      transform: scale(0.95);
+    button:disabled {
+      color: grey;
+      background-color: #ececec;
     }
 
-    button::before,
-    button::after,
-    input[type="submit"]::before,
-    input[type="submit"]::after {
-      left: var(--pseudo-left);
-      position: absolute;
-      top: 50%;
-      background-color: var(--accent-color);
-      width: 10%;
-      height: 150%;
-      content: "";
-      border-radius: 60%;
-      transform: translate(-50%, -50%);
-      transition: width 200ms ease-out, height 100ms, opacity ease-in 50ms;
-      opacity: 0;
+    input {
+      border: 1px solid grey;
     }
 
-    button:hover::before,
-    button:focus::before,
-    button:active::after,
-    input[type="submit"]:hover::before,
-    input[type="submit"]:focus::before,
-    input[type="submit"]:active::after {
-      opacity: 0.5;
-      --width-offset: max(var(--pseudo-left), 100% - var(--pseudo-left));
-      width: calc(110% + var(--width-offset));
-      height: 200%;
+    ul {
+      list-style: none;
+    }
+
+    #search-form {
+      padding: 0 1rem;
+    }
+
+    #search-results {
+      height: 50%;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+    }
+
+    #search-results li {
+      font-size: 1em;
+      padding: 1em;
+    }
+
+    #search-results li:hover {
+      background-color: #2b00ff07;
+      transition: all 100ms;
+    }
+
+    #search-results li:not(:last-child) {
+      border-bottom: 1px dashed #ececec;
+    }
+
+    #search-results p {
+      color: #585757;
+    }
+
+    #search-results p > b {
+      color: black;
     }
   </style>
   <body>
-    <button>Click me!</button>
-    <button class="light">Click me!</button>
-    <button>Click me!</button>
-    <form>
-      <button type="submit">Submit!</button>
+    <form onsubmit="handleSearchFormSubmit(event)" id="search-form">
+      <input required name="search" placeholder="search" />
+      <button is="pretty-button" type="submit">Submit!</button>
     </form>
+
+    <template id="search-result-template">
+      <a rel="noopener noreferrer" target="_blank" name="wrapper-link">
+        <li>
+          <h3 name="title"></h3>
+          <a name="link" rel="noopener noreferrer" target="_blank"></a>
+          <span name="content"></span>
+        </li>
+      </a>
+    </template>
+
+    <ul id="search-results"></ul>
+
+    <template id="pagination-template">
+      <form onsubmit="handlePaginationSubmit(event)">
+        <button is="pretty-button" class="light" type="submit" name="prev">
+          &lt
+        </button>
+        <span name="current"></span>
+        <button is="pretty-button" class="light" type="submit" name="next">
+          &gt
+        </button>
+      </form>
+    </template>
+
+    <div id="pagination"></div>
   </body>
   <script>
-    function getRelativeCursorPosition(event) {
-      const element = event.target;
-      const { clientX, clientY } = event;
-      const { left, right } = element.getBoundingClientRect();
-      const width = right - left;
+    const resultStorage = ((key) => ({
+      get: () => JSON.parse(localStorage.getItem(key)),
+      set: (value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
+    }))('last-result');
 
-      return ((clientX - left) * 100) / width;
+    async function handleSearchFormSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const query = formData.get('search');
+      const data = await fetchSearchQuery(query);
+      resultStorage.set(data);
     }
 
-    function setPseudoPosition(element, left) {
-      element.style.setProperty("--pseudo-left", `${left}%`);
+    async function handlePaginationSubmit(event) {
+      event.preventDefault();
+      const lastQuery = resultStorage.get().queries.request[0].searchTerms;
+      const offset = event.submitter.value;
+      const data = await fetchSearchQuery(lastQuery, offset ?? 0);
+      resultStorage.set(data);
     }
 
-    const buttons = document.getElementsByTagName("button");
-    for (let i = 0; i < buttons.length; i++) {
-      const element = buttons[i];
-      element.addEventListener("mousemove", (event) => {
-        const left = getRelativeCursorPosition(event);
-        setPseudoPosition(element, left);
-      });
-      element.addEventListener("mouseleave", (event) => {
-        const left = getRelativeCursorPosition(event);
-        setPseudoPosition(element, 50);
-      });
+    async function fetchSearchQuery(query, offset = 0) {
+      const response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?q=${query}&key=${credentials.key}&cx=${credentials.cx}&start=${offset}`
+      );
+      return response.json();
     }
+
+    function n(name, tagName = '*') {
+      return `${tagName}[name=${name}]`;
+    }
+
+    function renderResult(item) {
+      const resultList = document.querySelector('#search-results');
+      const resultTemplate = document.querySelector('#search-result-template');
+      const resultItemElement = resultTemplate.content.cloneNode(true);
+
+      const titleElement = resultItemElement.querySelector(n('title'));
+      titleElement.textContent = item.title;
+
+      const linkElement = resultItemElement.querySelector(n('link'));
+      linkElement.textContent = item.displayLink;
+      linkElement.href = item.link;
+
+      const contentElement = resultItemElement.querySelector(n('content'));
+      const testElement = document.createElement('p');
+      testElement.innerHTML = item.htmlSnippet;
+      contentElement.appendChild(testElement);
+
+      resultList.appendChild(resultItemElement);
+    }
+
+    function renderPagination(queries) {
+      const wrapperElement = document.querySelector('#pagination');
+      const template = document.querySelector('#pagination-template');
+      const formElement = template.content.cloneNode(true);
+
+      const prevButton = formElement.querySelector(n('prev'));
+      if (!queries.previousPage) {
+        prevButton.disabled = true;
+      } else {
+        prevButton.value = queries.previousPage[0].startIndex;
+      }
+
+      const nextButton = formElement.querySelector(n('next'));
+      if (!queries.nextPage) {
+        nextButton.disabled = true;
+      } else {
+        nextButton.value = queries.nextPage[0].startIndex;
+      }
+      nextButton.dataset.test = 'test';
+      wrapperElement.appendChild(formElement);
+    }
+
+    const result = JSON.parse(localStorage.getItem('last-result'));
+    result.items.forEach(renderResult);
+    renderPagination(result.queries);
   </script>
 </html>

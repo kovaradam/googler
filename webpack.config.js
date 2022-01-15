@@ -1,8 +1,9 @@
-const path = require("path");
+const path = require('path');
 
 module.exports = {
-  mode: "development",
+  mode: 'development',
   devServer: {
+    open: true,
     static: {
       directory: path.join(__dirname),
     },

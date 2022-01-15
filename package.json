@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "npx webpack serve "
+    "start": "npx webpack serve --live-reload"
   },
   "devDependencies": {
     "webpack-cli": "^4.9.1",

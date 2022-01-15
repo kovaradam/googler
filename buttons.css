@@ -1,0 +1,53 @@
+button,
+input[type='submit'] {
+  --base-color: rgb(65, 65, 163);
+  --accent-color: rgba(218, 218, 255, 0.29);
+  --color: white;
+  --pseudo-left: 50%;
+  --pseudo-top: 50%;
+  border: none;
+  color: var(--color);
+  cursor: pointer;
+  background-color: var(--base-color);
+  transition: transform 100ms;
+}
+
+.light {
+  --base-color: rgb(223, 223, 255);
+  --accent-color: rgba(94, 94, 250, 0.29);
+  --color: rgb(0 0 152);
+}
+
+button:active,
+input[type='submit']:active {
+  transform: scale(0.95);
+}
+
+button::before,
+button::after,
+input[type='submit']::before,
+input[type='submit']::after {
+  left: var(--pseudo-left);
+  top: var(--pseudo-top);
+  position: absolute;
+  background-color: var(--accent-color);
+  width: 10%;
+  height: 150%;
+  content: '';
+  border-radius: 60%;
+  transform: translate(-50%, -50%);
+  transition: width 200ms ease-out, height 100ms;
+  opacity: 0;
+}
+
+button:hover::before,
+button:focus::before,
+button:active::after,
+input[type='submit']:hover::before,
+input[type='submit']:focus::before,
+input[type='submit']:active::after {
+  opacity: 0.5;
+  --width-offset: max(var(--pseudo-left), 100% - var(--pseudo-left));
+  width: calc(110% + var(--width-offset));
+  height: 400%;
+}
