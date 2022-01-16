@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="buttons.css" />
     <script src="src/index.js" defer></script>
     <script src="src/store.js"></script>
-    <script src="env.js"></script>
+    <script src="env"></script>
   </head>
   <style>
     * {
@@ -86,11 +86,12 @@
 
     #search-results li {
       font-size: 1em;
-      padding: 1em 0;
+      padding: 1em;
     }
 
-    #search-results li:hover {
-      background-color: #2b00ff07;
+    #search-results li:hover,
+    #search-results li:focus-within {
+      background-color: #7256ff13;
       transition: all 100ms;
     }
 
@@ -163,7 +164,7 @@
       </form>
     </template>
 
-    <div id="pagination"></div>
+    <div id="pagination" data-is-visible="false"></div>
   </body>
   <script>
     const resultStorage = ((key) => ({
@@ -228,10 +229,11 @@
     }
 
     async function fetchSearchQuery(query, offset = 0) {
-      const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
-      );
-      return response.json();
+      // const response = await fetch(
+      //   `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
+      // );
+      // return response.json();
+      return resultStorage.get();
     }
 
     function n(name, tagName = '*') {
@@ -279,14 +281,28 @@
       return formElement;
     }
 
+    function isScrollEnd(element) {
+      const { scrollHeight, scrollTop, offsetHeight } = element;
+      const margin = 10;
+      return scrollTop + offsetHeight + margin >= element.scrollHeight;
+    }
+
     resultsElement?.addEventListener('mousemove', (event) => {
       const { clientY } = event;
-      const { top, bottom } = resultsElement.getBoundingClientRect();
-      const bodyHeight = bottom - top;
+      const { top } = resultsElement.getBoundingClientRect();
+      const elementHeight = resultsElement.offsetHeight;
       const relativeTop = clientY - top;
-      const topPercentage = (relativeTop * 100) / bodyHeight;
+      const topPercentage = (relativeTop * 100) / elementHeight;
 
-      Store.setState({ isPaginationVisible: topPercentage > 80 });
+      Store.setState({
+        isPaginationVisible: topPercentage > 80 || isScrollEnd(resultsElement),
+      });
+    });
+
+    resultsElement?.addEventListener('scroll', ({ target: element }) => {
+      Store.setState({
+        isPaginationVisible: isScrollEnd(element),
+      });
     });
   </script>
 </html>
