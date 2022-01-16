@@ -12,12 +12,6 @@ input[type='submit'] {
   transition: transform 100ms;
 }
 
-.light {
-  --base-color: rgb(223, 223, 255);
-  --accent-color: rgba(94, 94, 250, 0.29);
-  --color: rgb(0 0 152);
-}
-
 button:active,
 input[type='submit']:active {
   transform: scale(0.95);
