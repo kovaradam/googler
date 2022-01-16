@@ -5,7 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" media="screen" href="buttons.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="src/buttons.css"
+    />
     <script src="src/index.js" defer></script>
     <script src="src/store.js"></script>
     <script src="env"></script>
@@ -225,7 +230,13 @@
       const lastQuery = resultStorage.get().queries.request[0].searchTerms;
       const offset = event.submitter.value;
       const data = await fetchSearchQuery(lastQuery, offset ?? 0);
-      Store.setState({ results: data });
+      Store.setState((prevState) => {
+        const prevResults = prevState.results;
+        const newResults = data;
+        newResults.items = prevResults.items.concat(newResults.items);
+
+        return { ...prevState, results: newResults };
+      });
     }
 
     async function fetchSearchQuery(query, offset = 0) {

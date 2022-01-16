@@ -6,8 +6,8 @@ module.exports = {
     open: true,
     static: {
       directory: path.join(__dirname),
+      watch: true,
     },
-    compress: true,
     port: 3000,
   },
 };
