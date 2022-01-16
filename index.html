@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" media="screen" href="buttons.css" />
     <script src="src/index.js" defer></script>
+    <script src="src/store.js"></script>
     <script src="env.js"></script>
   </head>
   <style>
@@ -60,7 +61,11 @@
     }
 
     #search-form {
-      padding: 0 1rem;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     #search-results {
@@ -85,6 +90,14 @@
       border-bottom: 1px dashed #ececec;
     }
 
+    #search-results a:first-child {
+      display: block;
+      color: black;
+      font-size: 1.2em;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
     #search-results p {
       color: #585757;
     }
@@ -96,17 +109,15 @@
   <body>
     <form onsubmit="handleSearchFormSubmit(event)" id="search-form">
       <input required name="search" placeholder="search" />
-      <button is="pretty-button" type="submit">Submit!</button>
+      <button is="pretty-button" type="submit">Submit</button>
     </form>
 
     <template id="search-result-template">
-      <a rel="noopener noreferrer" target="_blank" name="wrapper-link">
-        <li>
-          <h3 name="title"></h3>
-          <a name="link" rel="noopener noreferrer" target="_blank"></a>
-          <span name="content"></span>
-        </li>
-      </a>
+      <li>
+        <a name="title-link" rel="noopener noreferrer" target="_blank"></a>
+        <a name="link" rel="noopener noreferrer" target="_blank"></a>
+        <span name="content"></span>
+      </li>
     </template>
 
     <ul id="search-results"></ul>
@@ -133,12 +144,38 @@
       },
     }))('last-result');
 
+    Store.subscribe(
+      ({ results }) => {
+        if (!results) {
+          return;
+        }
+
+        const resultListElement = document.querySelector('#search-results');
+        resultListElement.innerHTML = '';
+        results.items?.forEach((resultItem) =>
+          resultListElement.appendChild(renderResultItem(resultItem))
+        );
+
+        const paginationElement = document.querySelector('#pagination');
+        paginationElement.innerHTML = '';
+        paginationElement.appendChild(renderPagination(results.queries));
+      },
+      (state) => state.results
+    );
+
+    Store.subscribe(
+      (state) => resultStorage.set(state.results),
+      (state) => state.results
+    );
+
+    Store.setState({ query: '', results: resultStorage.get() || null });
+
     async function handleSearchFormSubmit(event) {
       event.preventDefault();
       const formData = new FormData(event.target);
       const query = formData.get('search');
       const data = await fetchSearchQuery(query);
-      resultStorage.set(data);
+      Store.setState({ query, results: data });
     }
 
     async function handlePaginationSubmit(event) {
@@ -146,7 +183,7 @@
       const lastQuery = resultStorage.get().queries.request[0].searchTerms;
       const offset = event.submitter.value;
       const data = await fetchSearchQuery(lastQuery, offset ?? 0);
-      resultStorage.set(data);
+      Store.setState({ results: data });
     }
 
     async function fetchSearchQuery(query, offset = 0) {
@@ -160,13 +197,13 @@
       return `${tagName}[name=${name}]`;
     }
 
-    function renderResult(item) {
-      const resultList = document.querySelector('#search-results');
+    function renderResultItem(item) {
       const resultTemplate = document.querySelector('#search-result-template');
       const resultItemElement = resultTemplate.content.cloneNode(true);
 
-      const titleElement = resultItemElement.querySelector(n('title'));
+      const titleElement = resultItemElement.querySelector(n('title-link'));
       titleElement.textContent = item.title;
+      titleElement.href = item.link;
 
       const linkElement = resultItemElement.querySelector(n('link'));
       linkElement.textContent = item.displayLink;
@@ -177,11 +214,10 @@
       testElement.innerHTML = item.htmlSnippet;
       contentElement.appendChild(testElement);
 
-      resultList.appendChild(resultItemElement);
+      return resultItemElement;
     }
 
     function renderPagination(queries) {
-      const wrapperElement = document.querySelector('#pagination');
       const template = document.querySelector('#pagination-template');
       const formElement = template.content.cloneNode(true);
 
@@ -198,12 +234,8 @@
       } else {
         nextButton.value = queries.nextPage[0].startIndex;
       }
-      nextButton.dataset.test = 'test';
-      wrapperElement.appendChild(formElement);
-    }
 
-    const result = JSON.parse(localStorage.getItem('last-result'));
-    result.items.forEach(renderResult);
-    renderPagination(result.queries);
+      return formElement;
+    }
   </script>
 </html>
