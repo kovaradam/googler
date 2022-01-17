@@ -142,7 +142,7 @@
     }
   </style>
   <body>
-    <form onsubmit="handleSearchFormSubmit(event)" id="search-form">
+    <form id="search-form">
       <input required name="search" placeholder="search" />
       <button is="pretty-button" type="submit">Submit</button>
     </form>
@@ -158,7 +158,7 @@
     <ul id="search-results"></ul>
 
     <template id="pagination-template">
-      <form onsubmit="handlePaginationSubmit(event)">
+      <form>
         <button is="pretty-button" class="light" type="submit" name="prev">
           &lt
         </button>
@@ -205,9 +205,10 @@
 
     Store.setState({ query: '', results: resultStorage.get() || null });
 
-    const [resultsElement, paginationElement] = [
+    const [resultsElement, paginationElement, searchFormElement] = [
       '#search-results',
       '#pagination',
+      '#search-form',
     ].map((selector) => document.querySelector(selector));
 
     Store.subscribe(
@@ -217,13 +218,13 @@
       (state) => state.isPaginationVisible
     );
 
-    async function handleSearchFormSubmit(event) {
+    searchFormElement?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(event.target);
       const query = formData.get('search');
       const data = await fetchSearchQuery(query);
       Store.setState({ query, results: data });
-    }
+    });
 
     async function handlePaginationSubmit(event) {
       event.preventDefault();
@@ -253,43 +254,46 @@
 
     function renderResultItem(item) {
       const resultTemplate = document.querySelector('#search-result-template');
-      const resultItemElement = resultTemplate.content.cloneNode(true);
+      const templateFragment = resultTemplate.content.cloneNode(true);
 
-      const titleElement = resultItemElement.querySelector(n('title-link'));
+      const titleElement = templateFragment.querySelector(n('title-link'));
       titleElement.textContent = item.title;
       titleElement.href = item.link;
 
-      const linkElement = resultItemElement.querySelector(n('link'));
+      const linkElement = templateFragment.querySelector(n('link'));
       linkElement.textContent = item.displayLink;
       linkElement.href = item.link;
 
-      const contentElement = resultItemElement.querySelector(n('content'));
+      const contentElement = templateFragment.querySelector(n('content'));
       const testElement = document.createElement('p');
       testElement.innerHTML = item.htmlSnippet;
       contentElement.appendChild(testElement);
 
-      return resultItemElement;
+      return templateFragment;
     }
 
     function renderPagination(queries) {
       const template = document.querySelector('#pagination-template');
-      const formElement = template.content.cloneNode(true);
+      const templateFragment = template.content.cloneNode(true);
 
-      const prevButton = formElement.querySelector(n('prev'));
+      const prevButton = templateFragment.querySelector(n('prev'));
       if (!queries.previousPage) {
         prevButton.disabled = true;
       } else {
         prevButton.value = queries.previousPage[0].startIndex;
       }
 
-      const nextButton = formElement.querySelector(n('next'));
+      const nextButton = templateFragment.querySelector(n('next'));
       if (!queries.nextPage) {
         nextButton.disabled = true;
       } else {
         nextButton.value = queries.nextPage[0].startIndex;
       }
 
-      return formElement;
+      const formElement = templateFragment.querySelector('form');
+      formElement.addEventListener('submit', handlePaginationSubmit);
+
+      return templateFragment;
     }
 
     function isScrollEnd(element) {
