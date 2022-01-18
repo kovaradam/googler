@@ -35,3 +35,36 @@ function setPseudoPosition(element, [left, top]) {
   element.style.setProperty('--pseudo-left', `${left}%`);
   element.style.setProperty('--pseudo-top', `${top}%`);
 }
+
+customElements.define(
+  'pretty-scroll',
+  class extends HTMLUListElement {
+    constructor() {
+      super();
+      this.classList.add('pretty-scroll');
+    }
+
+    connectedCallback() {
+      this?.addEventListener('wheel', (event) => {
+        this.dataset.isAtTop = false;
+        this.dataset.isAtBottom = false;
+        const isUpDirection = event.deltaY < 0;
+        const [isScrollAtStart, isScrollAtEnd] = [
+          this.scrollTop === 0,
+          isScrollEnd(resultsElement),
+        ];
+
+        const [showTopBarrier, showBottomBarrier] = [
+          isScrollAtStart && isUpDirection,
+          isScrollAtEnd && !isUpDirection,
+        ];
+
+        this.dataset.isAtTop = showTopBarrier;
+        this.dataset.isAtBottom = showBottomBarrier;
+      });
+    }
+  },
+  {
+    extends: 'ul',
+  }
+);

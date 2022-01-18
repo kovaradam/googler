@@ -11,8 +11,14 @@
       media="screen"
       href="src/buttons.css"
     />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="src/scroll.css"
+    />
     <script src="src/index.js" defer></script>
-    <script src="src/store.js"></script>
+    <script src="src/utils.js"></script>
     <script src="env"></script>
   </head>
   <style>
@@ -102,6 +108,8 @@
       padding: 0 1rem;
       height: 0;
       transition: height 100ms;
+
+      --pseudo-radius: 50%;
     }
 
     #search-results:not(:empty) {
@@ -182,7 +190,7 @@
       </li>
     </template>
 
-    <ul id="search-results"></ul>
+    <ul id="search-results" is="pretty-scroll"></ul>
 
     <template id="pagination-template">
       <form>
@@ -334,12 +342,6 @@
       formElement.addEventListener('submit', handlePaginationSubmit);
 
       return templateFragment;
-    }
-
-    function isScrollEnd(element) {
-      const { scrollHeight, scrollTop, offsetHeight } = element;
-      const margin = 10;
-      return scrollTop + offsetHeight + margin >= element.scrollHeight;
     }
 
     resultsElement?.addEventListener('mousemove', (event) => {
