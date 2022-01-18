@@ -36,7 +36,8 @@
       flex-direction: column;
       overflow: hidden;
       position: relative;
-      max-height: 700px;
+      width: 400px;
+      outline: 1px solid red;
     }
 
     button,
@@ -80,13 +81,35 @@
       flex-grow: 1;
     }
 
+    #loading-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 3rem;
+      overflow: hidden;
+      transition: height 100ms;
+    }
+
+    #loading-wrapper[data-is-visible='false'] {
+      height: 0;
+    }
+
     #search-results {
-      height: 50%;
       overflow: auto;
       display: flex;
       flex-direction: column;
       font-size: 0.9rem;
       padding: 0 1rem;
+      height: 0;
+      transition: height 100ms;
+    }
+
+    #search-results:not(:empty) {
+      height: 500px;
+    }
+
+    #search-results:empty ~ #pagination {
+      visibility: hidden;
     }
 
     #search-results li {
@@ -147,6 +170,10 @@
       <button is="pretty-button" type="submit">Submit</button>
     </form>
 
+    <div id="loading-wrapper" data-is-visible="false">
+      <span>searching...</span>
+    </div>
+
     <template id="search-result-template">
       <li>
         <a name="title-link" rel="noopener noreferrer" target="_blank"></a>
@@ -159,12 +186,8 @@
 
     <template id="pagination-template">
       <form>
-        <button is="pretty-button" class="light" type="submit" name="prev">
-          &lt
-        </button>
-        <span name="current"></span>
-        <button is="pretty-button" class="light" type="submit" name="next">
-          &gt
+        <button is="pretty-button" class="light" type="submit" name="more">
+          more
         </button>
       </form>
     </template>
@@ -181,49 +204,72 @@
 
     Store.subscribe(
       ({ results }) => {
+        const resultListElement = document.querySelector('#search-results');
+        resultListElement.innerHTML = '';
+
+        const paginationElement = document.querySelector('#pagination');
+        paginationElement.innerHTML = '';
+
         if (!results) {
           return;
         }
 
-        const resultListElement = document.querySelector('#search-results');
-        resultListElement.innerHTML = '';
         results.items?.forEach((resultItem) =>
           resultListElement.appendChild(renderResultItem(resultItem))
         );
 
-        const paginationElement = document.querySelector('#pagination');
-        paginationElement.innerHTML = '';
         paginationElement.appendChild(renderPagination(results.queries));
       },
       (state) => state.results
     );
 
     Store.subscribe(
-      (state) => resultStorage.set(state.results),
+      (state) => {
+        if (!state.results) {
+          return;
+        }
+        resultStorage.set(state.results);
+      },
       (state) => state.results
     );
 
-    Store.setState({ query: '', results: resultStorage.get() || null });
+    Store.setState({ results: resultStorage.get() || null });
 
-    const [resultsElement, paginationElement, searchFormElement] = [
+    const [
+      resultsElement,
+      paginationElement,
+      searchFormElement,
+      loadingElement,
+    ] = [
       '#search-results',
       '#pagination',
       '#search-form',
+      '#loading-wrapper',
     ].map((selector) => document.querySelector(selector));
 
     Store.subscribe(
       (state) => {
-        paginationElement.dataset.isVisible = state.isPaginationVisible;
+        paginationElement.dataset.isVisible = !!state.isPaginationVisible;
       },
       (state) => state.isPaginationVisible
     );
 
+    Store.subscribe(
+      (state) => {
+        loadingElement.dataset.isVisible = !!state.isLoading;
+      },
+      (state) => state.isLoading
+    );
+
     searchFormElement?.addEventListener('submit', async (event) => {
       event.preventDefault();
+      Store.setState({ results: null, isLoading: true });
       const formData = new FormData(event.target);
       const query = formData.get('search');
       const data = await fetchSearchQuery(query);
-      Store.setState({ query, results: data });
+      setTimeout(() => {
+        Store.setState({ results: data, isLoading: false });
+      }, 1000);
     });
 
     async function handlePaginationSubmit(event) {
@@ -245,6 +291,7 @@
       //   `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
       // );
       // return response.json();
+
       return resultStorage.get();
     }
 
@@ -276,18 +323,11 @@
       const template = document.querySelector('#pagination-template');
       const templateFragment = template.content.cloneNode(true);
 
-      const prevButton = templateFragment.querySelector(n('prev'));
-      if (!queries.previousPage) {
-        prevButton.disabled = true;
-      } else {
-        prevButton.value = queries.previousPage[0].startIndex;
-      }
-
-      const nextButton = templateFragment.querySelector(n('next'));
+      const moreButton = templateFragment.querySelector(n('more'));
       if (!queries.nextPage) {
-        nextButton.disabled = true;
+        moreButton.disabled = true;
       } else {
-        nextButton.value = queries.nextPage[0].startIndex;
+        moreButton.value = queries.nextPage[0].startIndex;
       }
 
       const formElement = templateFragment.querySelector('form');
