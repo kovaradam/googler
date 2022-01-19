@@ -298,8 +298,6 @@
       (state) => state.isLoading
     );
 
-    Store.setState({ isLoading: true });
-
     searchFormElement?.addEventListener('submit', async (event) => {
       event.preventDefault();
       Store.setState({ results: null, isLoading: true });
