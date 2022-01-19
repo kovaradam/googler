@@ -63,11 +63,16 @@
 
     #search-form {
       width: 100%;
+      padding: 1rem;
+    }
+
+    #search-form fieldset {
+      width: 100%;
+      border: none;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 0.5rem;
-      padding: 1rem;
     }
 
     #search-form input {
@@ -161,8 +166,10 @@
   </style>
   <body>
     <form id="search-form">
-      <input required name="search" placeholder="search" />
-      <button is="pretty-button" type="submit">Submit</button>
+      <fieldset name="search-fieldset">
+        <input required name="search" placeholder="search" />
+        <button is="pretty-button" type="submit">Submit</button>
+      </fieldset>
     </form>
 
     <div id="loading-wrapper" data-is-visible="false">
@@ -254,6 +261,7 @@
     Store.subscribe(
       (state) => {
         loadingElement.dataset.isVisible = !!state.isLoading;
+        searchFormElement['search-fieldset'].disabled = state.isLoading;
       },
       (state) => state.isLoading
     );
