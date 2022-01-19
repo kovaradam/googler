@@ -1,8 +1,28 @@
+import { isScrollEnd } from './utils.js';
+
+function appendComponentStylesheet(styleSrc) {
+  const styleTag = 'link';
+  const currentStyleElement = document.querySelector(
+    `${styleTag}[href="${styleSrc}"]`
+  );
+  if (currentStyleElement) {
+    return;
+  }
+  const headElement = document.querySelector('head');
+  const styleElement = document.createElement(styleTag);
+  styleElement.rel = 'stylesheet';
+  styleElement.type = 'text/css';
+  styleElement.media = 'screen';
+  styleElement.href = styleSrc;
+  headElement.appendChild(styleElement);
+}
+
 customElements.define(
   'pretty-button',
   class extends HTMLButtonElement {
     constructor() {
       super();
+      appendComponentStylesheet('src/buttons.css');
     }
 
     connectedCallback() {
@@ -41,6 +61,7 @@ customElements.define(
   class extends HTMLUListElement {
     constructor() {
       super();
+      appendComponentStylesheet('src/scroll.css');
       this.classList.add('pretty-scroll');
     }
 
@@ -51,7 +72,7 @@ customElements.define(
         const isUpDirection = event.deltaY < 0;
         const [isScrollAtStart, isScrollAtEnd] = [
           this.scrollTop === 0,
-          isScrollEnd(resultsElement),
+          isScrollEnd(this),
         ];
 
         const [showTopBarrier, showBottomBarrier] = [

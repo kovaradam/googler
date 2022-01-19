@@ -1,5 +1,6 @@
 'use strict';
-class Store {
+
+export class Store {
   static listeners = [];
   static state = {};
 
@@ -28,7 +29,7 @@ class Store {
   }
 }
 
-function isScrollEnd(element) {
+export function isScrollEnd(element) {
   const { scrollHeight, scrollTop, offsetHeight } = element;
   const margin = 10;
   return scrollTop + offsetHeight + margin >= element.scrollHeight;

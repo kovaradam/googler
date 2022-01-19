@@ -5,20 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      media="screen"
-      href="src/buttons.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      media="screen"
-      href="src/scroll.css"
-    />
-    <script src="src/index.js" defer></script>
-    <script src="src/utils.js"></script>
+    <script type="module" src="src/components.js" defer></script>
     <script src="env"></script>
   </head>
   <style>
@@ -202,7 +189,9 @@
 
     <div id="pagination" data-is-visible="false"></div>
   </body>
-  <script>
+  <script type="module">
+    import { Store, isScrollEnd } from './src/utils.js';
+
     const resultStorage = ((key) => ({
       get: () => JSON.parse(localStorage.getItem(key)),
       set: (value) => {
