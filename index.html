@@ -92,6 +92,38 @@
       height: 0;
     }
 
+    @keyframes loading {
+      0% {
+        content: '>.......';
+      }
+      12% {
+        content: '.>......';
+      }
+      25% {
+        content: '..>.....';
+      }
+      37% {
+        content: '...>....';
+      }
+      50% {
+        content: '....>...';
+      }
+      62% {
+        content: '.....>..';
+      }
+      75% {
+        content: '......>.';
+      }
+      88% {
+        content: '.......>';
+      }
+    }
+
+    #loading-wrapper span::before {
+      content: '';
+      animation: loading 1200ms linear infinite;
+    }
+
     #search-results {
       overflow: auto;
       display: flex;
@@ -173,7 +205,7 @@
     </form>
 
     <div id="loading-wrapper" data-is-visible="false">
-      <span>searching...</span>
+      <span></span>
     </div>
 
     <template id="search-result-template">
@@ -265,6 +297,8 @@
       },
       (state) => state.isLoading
     );
+
+    Store.setState({ isLoading: true });
 
     searchFormElement?.addEventListener('submit', async (event) => {
       event.preventDefault();
