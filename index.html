@@ -264,9 +264,7 @@
       const formData = new FormData(event.target);
       const query = formData.get('search');
       const data = await fetchSearchQuery(query);
-      setTimeout(() => {
-        Store.setState({ results: data, isLoading: false });
-      }, 1000);
+      Store.setState({ results: data, isLoading: false });
     });
 
     async function handlePaginationSubmit(event) {
@@ -289,6 +287,7 @@
       // );
       // return response.json();
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return resultStorage.get();
     }
 
