@@ -64,8 +64,8 @@ Store.subscribe(
 
 searchFormElement?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  Store.setState({ results: null, isLoading: true });
   const formData = new FormData(event.target);
+  Store.setState({ results: null, isLoading: true });
   const query = formData.get('search');
   const data = await fetchSearchQuery(query);
   Store.setState({ results: data, isLoading: false });
@@ -75,6 +75,7 @@ searchFormElement?.search.focus();
 
 async function handlePaginationSubmit(event) {
   event.preventDefault();
+  Store.setState({ isLoading: true });
   const lastQuery = resultStorage.get().queries.request[0].searchTerms;
   const offset = event.submitter.value;
   const data = await fetchSearchQuery(lastQuery, offset ?? 0);
@@ -83,15 +84,15 @@ async function handlePaginationSubmit(event) {
     const newResults = data;
     newResults.items = prevResults.items.concat(newResults.items);
 
-    return { ...prevState, results: newResults };
+    return { ...prevState, results: newResults, isLoading: false };
   });
 }
 
 async function fetchSearchQuery(query, offset = 0) {
-  // const response = await fetch(
-  //   `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
-  // );
-  // return response.json();
+  const response = await fetch(
+    `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
+  );
+  return response.json();
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return resultStorage.get();
