@@ -93,7 +93,9 @@ async function fetchSearchQuery(query, offset = 0) {
     `https://www.googleapis.com/customsearch/v1?q=${query}&key=${KEY}&cx=${CX}&start=${offset}`
   );
   return response.json();
+}
 
+async function fakeFetch(_, __) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return resultStorage.get();
 }
