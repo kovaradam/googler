@@ -4,7 +4,8 @@
   "manifest_version": 3,
   "permissions": ["storage"],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_icon": "public/logo.png"
   },
   "commands": {
     "_execute_action": {
